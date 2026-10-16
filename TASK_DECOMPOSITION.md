@@ -12,18 +12,18 @@
 - [x] Commit DOM renderer.
 
 ## Exercise 2
-- [ ] Implement stateStore and cursor reset.
-- [ ] Implement useState dispatcher.
-- [ ] Implement root event delegation.
-- [ ] Build reactive Task Manager.
-- [ ] Add dynamic filters.
-- [ ] Verify event and state behavior.
-- [ ] Complete four atomic commits.
+- [x] Implement stateStore and cursor reset.
+- [x] Implement useState dispatcher.
+- [x] Implement root event delegation.
+- [x] Build reactive Task Manager.
+- [x] Add dynamic filters.
+- [x] Verify event and state behavior.
+- [x] Complete four atomic commits.
 
 ## Exercise 3
-- [ ] Define four-state contract.
-- [ ] Implement asynchronous data loading.
-- [ ] Add skeleton loading feedback.
-- [ ] Add error message and retry.
-- [ ] Verify all four states.
-- [ ] Commit verified implementation.
+- [x] Define four-state contract.
+- [x] Implement asynchronous data loading.
+- [x] Add skeleton loading feedback.
+- [x] Add error message and retry.
+- [x] Verify all four states.
+- [x] Commit verified implementation.
