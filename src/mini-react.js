@@ -1,10 +1,14 @@
 
 /**
- * Lab 02 - Exercise 1
- * Mini-React VNode & Mounting Engine
+ * Lab 02 - Mini-React Engine
+ * Exercise 1 + Exercise 2
  */
 
-export function isVNode(value) {
+import {
+    registerEventHandlers
+  } from './events.js';
+  
+  export function isVNode(value) {
     return (
       value !== null &&
       typeof value === 'object' &&
@@ -20,7 +24,10 @@ export function isVNode(value) {
   }
   
   export function createTextElement(text) {
-    if (typeof text !== 'string' && typeof text !== 'number') {
+    if (
+      typeof text !== 'string' &&
+      typeof text !== 'number'
+    ) {
       throw new TypeError(
         'Text elements must contain a string or number'
       );
@@ -28,6 +35,7 @@ export function isVNode(value) {
   
     return Object.freeze({
       type: 'TEXT_ELEMENT',
+  
       props: Object.freeze({
         nodeValue: String(text),
         children: Object.freeze([])
@@ -60,11 +68,13 @@ export function isVNode(value) {
   
     const normalizedChildren = children
       .flat(Infinity)
+  
       .filter(child =>
         child !== null &&
         child !== undefined &&
         typeof child !== 'boolean'
       )
+  
       .map(child => {
         if (
           typeof child === 'string' ||
@@ -77,45 +87,56 @@ export function isVNode(value) {
           return child;
         }
   
-        throw new TypeError('Invalid VNode child');
+        throw new TypeError(
+          'Invalid VNode child'
+        );
       });
-  
-    const normalizedProps = Object.freeze({
-      ...(props || {}),
-      children: Object.freeze(normalizedChildren)
-    });
   
     return Object.freeze({
       type,
-      props: normalizedProps
+  
+      props: Object.freeze({
+        ...(props || {}),
+        children: Object.freeze(normalizedChildren)
+      })
     });
   }
   
   /**
-   * Recursively convert a VNode into a real DOM node.
+   * Convert VNode to real DOM.
+   *
+   * delegateEvents = false:
+   * Exercise 1 direct listeners.
+   *
+   * delegateEvents = true:
+   * Exercise 2 root delegation.
    */
-  export function renderToDOM(vnode) {
+  export function renderToDOM(
+    vnode,
+    options = { delegateEvents: false }
+  ) {
     if (!isVNode(vnode)) {
-      throw new TypeError('Invalid VNode supplied to renderer');
+      throw new TypeError('Invalid VNode');
     }
   
-    // Handle text nodes safely.
     if (vnode.type === 'TEXT_ELEMENT') {
       return document.createTextNode(
         vnode.props.nodeValue
       );
     }
   
-    // Functional components.
     if (typeof vnode.type === 'function') {
       const componentVNode = vnode.type(vnode.props);
-      return renderToDOM(componentVNode);
+  
+      return renderToDOM(componentVNode, options);
     }
   
-    // Create a real HTML element.
     const dom = document.createElement(vnode.type);
   
-    // Assign properties and event listeners.
+    if (options.delegateEvents) {
+      registerEventHandlers(dom, vnode.props);
+    }
+  
     for (const [name, value] of Object.entries(vnode.props)) {
       if (
         name === 'children' ||
@@ -129,14 +150,16 @@ export function isVNode(value) {
         continue;
       }
   
-      // Events such as onClick and onInput.
-      if (
-        /^on[A-Z]/.test(name) &&
-        typeof value === 'function'
-      ) {
-        const eventName = name.slice(2).toLowerCase();
+      if (/^on[A-Z]/.test(name)) {
+        if (
+          !options.delegateEvents &&
+          typeof value === 'function'
+        ) {
+          const eventName = name.slice(2).toLowerCase();
   
-        dom.addEventListener(eventName, value);
+          dom.addEventListener(eventName, value);
+        }
+  
         continue;
       }
   
@@ -154,12 +177,10 @@ export function isVNode(value) {
         continue;
       }
   
-      // Do not turn arbitrary event props into HTML attributes.
       if (/^on/i.test(name)) {
         continue;
       }
   
-      // Avoid raw HTML injection.
       if (
         name === 'innerHTML' ||
         name === 'outerHTML' ||
@@ -183,10 +204,10 @@ export function isVNode(value) {
       dom.setAttribute(name, String(value));
     }
   
-    // Recursively mount children.
     for (const child of vnode.props.children) {
-      dom.appendChild(renderToDOM(child));
+      dom.appendChild(renderToDOM(child, options));
     }
   
     return dom;
   }
+  
