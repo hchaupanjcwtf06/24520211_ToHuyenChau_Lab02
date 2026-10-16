@@ -76,3 +76,46 @@ export function writeState(slot, value) {
 export function requestRender() {
   triggerRender();
 }
+
+/**
+ * Custom useState hook.
+ *
+ * Returns:
+ * [currentState, setState]
+ */
+export function useState(initialValue) {
+    const slot = reserveStateSlot();
+  
+    // Initialize only once.
+    if (!hasState(slot)) {
+      const initial =
+        typeof initialValue === 'function'
+          ? initialValue()
+          : initialValue;
+  
+      writeState(slot, initial);
+    }
+  
+    /**
+     * Setter captures its own state slot.
+     */
+    const setState = nextValue => {
+      const previousState = readState(slot);
+  
+      const resolvedState =
+        typeof nextValue === 'function'
+          ? nextValue(previousState)
+          : nextValue;
+  
+      // Avoid unnecessary re-render.
+      if (Object.is(previousState, resolvedState)) {
+        return;
+      }
+  
+      writeState(slot, resolvedState);
+  
+      requestRender();
+    };
+  
+    return [readState(slot), setState];
+  }
