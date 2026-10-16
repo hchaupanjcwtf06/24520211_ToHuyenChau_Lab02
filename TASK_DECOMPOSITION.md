@@ -2,14 +2,14 @@
 # Lab 02 - Task Decomposition
 
 ## Exercise 1
-- [ ] Define VNode contract.
-- [ ] Implement createTextElement.
-- [ ] Implement createElement.
-- [ ] Verify child normalization.
-- [ ] Commit VNode factory.
-- [ ] Implement renderToDOM.
-- [ ] Verify semantic DOM and XSS safety.
-- [ ] Commit DOM renderer.
+- [x] Define VNode contract.
+- [x] Implement createTextElement.
+- [x] Implement createElement.
+- [x] Verify child normalization.
+- [x] Commit VNode factory.
+- [x] Implement renderToDOM.
+- [x] Verify semantic DOM and XSS safety.
+- [x] Commit DOM renderer.
 
 ## Exercise 2
 - [ ] Implement stateStore and cursor reset.
