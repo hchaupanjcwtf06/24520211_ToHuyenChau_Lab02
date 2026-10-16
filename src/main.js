@@ -1,60 +1,162 @@
-import './style.css'
-import heroImg from './assets/hero.png'
-import javascriptLogo from './assets/javascript.svg'
-import viteLogo from './assets/vite.svg'
-import { setupCounter } from './counter.js'
 
-document.querySelector('#app').innerHTML = `
-<section id="center">
-  <div class="hero">
-    <img src="${heroImg}" class="base" width="170" height="179">
-    <img src="${javascriptLogo}" class="framework" alt="JavaScript logo"/>
-    <img src="${viteLogo}" class="vite" alt="Vite logo" />
-  </div>
-  <div>
-    <h1>Get started</h1>
-    <p>Edit <code>src/main.js</code> and save to test <code>HMR</code></p>
-  </div>
-  <button id="counter" type="button" class="counter"></button>
-</section>
+/**
+ * Lab 02 - Exercise 1
+ * VNode Mounting Demo
+ */
 
-<div class="ticks"></div>
+import {
+  createElement,
+  renderToDOM
+} from './mini-react.js';
 
-<section id="next-steps">
-  <div id="docs">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
-    <ul>
-      <li>
-        <a href="https://vite.dev/" target="_blank">
-          <img class="logo" src="${viteLogo}" alt="" />
-          Explore Vite
-        </a>
-      </li>
-      <li>
-        <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-          <img class="button-icon" src="${javascriptLogo}" alt="">
-          Learn more
-        </a>
-      </li>
-    </ul>
-  </div>
-  <div id="social">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
-    <ul>
-      <li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg>GitHub</a></li>
-      <li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg>Discord</a></li>
-      <li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg>X.com</a></li>
-      <li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg>Bluesky</a></li>
-    </ul>
-  </div>
-</section>
+import './style.css';
+import { runRendererTests } from './test-renderer.js';
 
-<div class="ticks"></div>
-<section id="spacer"></section>
-`
+const root = document.getElementById('app');
 
-setupCounter(document.querySelector('#counter'))
+if (!root) {
+  throw new Error('Root element #app was not found');
+}
+
+const vApp = createElement(
+  'main',
+  {
+    id: 'root-view',
+    role: 'main',
+    className: 'app-container'
+  },
+
+  createElement(
+    'header',
+    { className: 'hero' },
+
+    createElement(
+      'h1',
+      null,
+      'Mini React Engine'
+    ),
+
+    createElement(
+      'p',
+      null,
+      'Exercise 1: Virtual DOM & Mounting Engine'
+    ),
+
+    createElement(
+      'p',
+      { className: 'security-text' },
+      '<img src=x onerror=alert(1)> Safe Text'
+    ),
+
+    createElement(
+      'p',
+      null,
+      '<script>alert(1)</script>'
+    )
+  ),
+
+  createElement(
+    'section',
+    {
+      className: 'demo-section',
+      'aria-label': 'Interactive demonstration'
+    },
+
+    createElement(
+      'h2',
+      null,
+      'DOM Mounting Test'
+    ),
+
+    createElement(
+      'p',
+      null,
+      'This interface is generated from VNodes.'
+    ),
+
+    createElement(
+      'button',
+      {
+        id: 'ping-button',
+        type: 'button',
+        onClick: () => console.log('Ping')
+      },
+      'Click'
+    )
+  ),
+
+  createElement(
+    'section',
+    {
+      className: 'demo-section',
+      'aria-label': 'Engine information'
+    },
+
+    createElement(
+      'h2',
+      null,
+      'Engine Features'
+    ),
+
+    createElement(
+      'ul',
+      null,
+
+      createElement(
+        'li',
+        null,
+        'VNode factory'
+      ),
+
+      createElement(
+        'li',
+        null,
+        'Text normalization'
+      ),
+
+      createElement(
+        'li',
+        null,
+        'Recursive DOM mounting'
+      ),
+
+      createElement(
+        'li',
+        null,
+        'Safe text rendering'
+      )
+    )
+  )
+);
+
+// Mount VNode tree into the real DOM.
+root.replaceChildren(renderToDOM(vApp));
+
+// Basic runtime verification.
+console.assert(
+  root.querySelector('main') !== null,
+  'Main element missing'
+);
+
+console.assert(
+  root.querySelector('section') !== null,
+  'Section element missing'
+);
+
+console.assert(
+  root.querySelector('button') !== null,
+  'Button element missing'
+);
+
+console.assert(
+  root.querySelector('img') === null,
+  'Unexpected image element created'
+);
+
+console.assert(
+  root.querySelector('script') === null,
+  'Unexpected script element created'
+);
+
+console.log('Exercise 1 mounted successfully');
+runRendererTests();

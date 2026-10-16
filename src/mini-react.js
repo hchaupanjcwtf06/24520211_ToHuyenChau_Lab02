@@ -1,12 +1,9 @@
 
 /**
  * Lab 02 - Exercise 1
- * Mini-React VNode Factory
+ * Mini-React VNode & Mounting Engine
  */
 
-/**
- * Check whether a value is a valid VNode.
- */
 export function isVNode(value) {
     return (
       value !== null &&
@@ -22,9 +19,6 @@ export function isVNode(value) {
     );
   }
   
-  /**
-   * Convert a string or number into a text VNode.
-   */
   export function createTextElement(text) {
     if (typeof text !== 'string' && typeof text !== 'number') {
       throw new TypeError(
@@ -34,7 +28,6 @@ export function isVNode(value) {
   
     return Object.freeze({
       type: 'TEXT_ELEMENT',
-  
       props: Object.freeze({
         nodeValue: String(text),
         children: Object.freeze([])
@@ -42,14 +35,6 @@ export function isVNode(value) {
     });
   }
   
-  /**
-   * Create a Virtual DOM node.
-   *
-   * Contract:
-   * - type: HTML tag name or component function
-   * - props: attributes and event handlers
-   * - children: nested VNodes, strings or numbers
-   */
   export function createElement(type, props, ...children) {
     if (
       typeof type !== 'string' &&
@@ -75,13 +60,11 @@ export function isVNode(value) {
   
     const normalizedChildren = children
       .flat(Infinity)
-  
       .filter(child =>
         child !== null &&
         child !== undefined &&
         typeof child !== 'boolean'
       )
-  
       .map(child => {
         if (
           typeof child === 'string' ||
@@ -94,9 +77,7 @@ export function isVNode(value) {
           return child;
         }
   
-        throw new TypeError(
-          'Invalid VNode child'
-        );
+        throw new TypeError('Invalid VNode child');
       });
   
     const normalizedProps = Object.freeze({
@@ -110,3 +91,102 @@ export function isVNode(value) {
     });
   }
   
+  /**
+   * Recursively convert a VNode into a real DOM node.
+   */
+  export function renderToDOM(vnode) {
+    if (!isVNode(vnode)) {
+      throw new TypeError('Invalid VNode supplied to renderer');
+    }
+  
+    // Handle text nodes safely.
+    if (vnode.type === 'TEXT_ELEMENT') {
+      return document.createTextNode(
+        vnode.props.nodeValue
+      );
+    }
+  
+    // Functional components.
+    if (typeof vnode.type === 'function') {
+      const componentVNode = vnode.type(vnode.props);
+      return renderToDOM(componentVNode);
+    }
+  
+    // Create a real HTML element.
+    const dom = document.createElement(vnode.type);
+  
+    // Assign properties and event listeners.
+    for (const [name, value] of Object.entries(vnode.props)) {
+      if (
+        name === 'children' ||
+        name === 'key' ||
+        name === 'nodeValue'
+      ) {
+        continue;
+      }
+  
+      if (value === null || value === undefined) {
+        continue;
+      }
+  
+      // Events such as onClick and onInput.
+      if (
+        /^on[A-Z]/.test(name) &&
+        typeof value === 'function'
+      ) {
+        const eventName = name.slice(2).toLowerCase();
+  
+        dom.addEventListener(eventName, value);
+        continue;
+      }
+  
+      if (name === 'className') {
+        dom.className = String(value);
+        continue;
+      }
+  
+      if (
+        name === 'style' &&
+        typeof value === 'object' &&
+        !Array.isArray(value)
+      ) {
+        Object.assign(dom.style, value);
+        continue;
+      }
+  
+      // Do not turn arbitrary event props into HTML attributes.
+      if (/^on/i.test(name)) {
+        continue;
+      }
+  
+      // Avoid raw HTML injection.
+      if (
+        name === 'innerHTML' ||
+        name === 'outerHTML' ||
+        name === 'srcdoc' ||
+        name === 'dangerouslySetInnerHTML'
+      ) {
+        continue;
+      }
+  
+      if (typeof value === 'boolean') {
+        if (value) {
+          dom.setAttribute(name, '');
+        }
+        continue;
+      }
+  
+      if (typeof value === 'function') {
+        continue;
+      }
+  
+      dom.setAttribute(name, String(value));
+    }
+  
+    // Recursively mount children.
+    for (const child of vnode.props.children) {
+      dom.appendChild(renderToDOM(child));
+    }
+  
+    return dom;
+  }
