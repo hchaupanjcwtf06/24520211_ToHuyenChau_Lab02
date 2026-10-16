@@ -1,5 +1,5 @@
 
-/* Lab 02 - Exercise 1 */
+/* Lab 02 - Exercise 2 */
 
 :root {
   font-family: Arial, Helvetica, sans-serif;
@@ -23,55 +23,47 @@ body {
   padding: 24px;
 }
 
-.hero {
+.app-header {
   padding: 28px;
-  border-radius: 12px;
-  background-color: #ffffff;
+  background: #ffffff;
   border: 1px solid #dce4ef;
+  border-radius: 12px;
 }
 
 h1 {
-  margin-top: 0;
-  font-size: 32px;
+  margin: 0 0 12px;
+  font-size: 30px;
 }
 
 h2 {
   margin-top: 0;
-  font-size: 22px;
 }
 
 p {
   line-height: 1.6;
 }
 
-.security-text {
-  overflow-wrap: anywhere;
-  padding: 12px;
-  border-left: 4px solid #2563eb;
-  background-color: #eff6ff;
-}
-
-.demo-section {
+.control-section,
+.list-section {
   margin-top: 20px;
   padding: 24px;
-  background-color: #ffffff;
+  background: #ffffff;
   border: 1px solid #dce4ef;
   border-radius: 12px;
 }
 
 button {
-  padding: 12px 20px;
+  padding: 10px 16px;
   border: 1px solid #1d4ed8;
   border-radius: 8px;
-  background-color: #1d4ed8;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 600;
+  background: #1d4ed8;
+  color: white;
+  font-size: 14px;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: #1e40af;
+  background: #1e40af;
 }
 
 button:focus-visible {
@@ -79,8 +71,74 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
-li {
-  margin-bottom: 8px;
+.filter-nav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.filter-button {
+  background: #ffffff;
+  color: #1d4ed8;
+}
+
+.filter-button:hover {
+  background: #eff6ff;
+}
+
+.filter-button[aria-pressed="true"] {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.task-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.task-title {
+  flex: 1;
+  min-width: 150px;
+  overflow-wrap: anywhere;
+}
+
+.task-title.completed {
+  color: #64748b;
+  text-decoration: line-through;
+}
+
+.action-button {
+  background: #15803d;
+  border-color: #15803d;
+}
+
+.action-button:hover {
+  background: #166534;
+}
+
+.delete-button {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
+.delete-button:hover {
+  background: #991b1b;
+}
+
+.empty-message {
+  color: #64748b;
+  font-style: italic;
 }
 
 @media (max-width: 600px) {
@@ -89,12 +147,17 @@ li {
     padding: 12px;
   }
 
-  .hero,
-  .demo-section {
+  .app-header,
+  .control-section,
+  .list-section {
     padding: 18px;
   }
 
   h1 {
-    font-size: 26px;
+    font-size: 25px;
+  }
+
+  .task-title {
+    flex-basis: 100%;
   }
 }

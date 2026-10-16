@@ -1,162 +1,312 @@
 
 /**
- * Lab 02 - Exercise 1
- * VNode Mounting Demo
+ * Lab 02 - Exercise 2
+ * Reactive Task Manager
  */
 
 import {
-  createElement,
+  createElement as h,
   renderToDOM
 } from './mini-react.js';
 
+import {
+  useState,
+  resetCursor,
+  setRenderer
+} from './state.js';
+
+import {
+  setupEventDelegation
+} from './events.js';
+
 import './style.css';
-import { runRendererTests } from './test-renderer.js';
 
 const root = document.getElementById('app');
 
 if (!root) {
-  throw new Error('Root element #app was not found');
+  throw new Error('Root #app was not found');
 }
 
-const vApp = createElement(
-  'main',
-  {
-    id: 'root-view',
-    role: 'main',
-    className: 'app-container'
-  },
-
-  createElement(
-    'header',
-    { className: 'hero' },
-
-    createElement(
-      'h1',
-      null,
-      'Mini React Engine'
-    ),
-
-    createElement(
-      'p',
-      null,
-      'Exercise 1: Virtual DOM & Mounting Engine'
-    ),
-
-    createElement(
-      'p',
-      { className: 'security-text' },
-      '<img src=x onerror=alert(1)> Safe Text'
-    ),
-
-    createElement(
-      'p',
-      null,
-      '<script>alert(1)</script>'
-    )
-  ),
-
-  createElement(
-    'section',
+/**
+ * Main application component.
+ */
+function TaskApp() {
+  // Hook 0: Task list
+  const [tasks, setTasks] = useState([
     {
-      className: 'demo-section',
-      'aria-label': 'Interactive demonstration'
+      id: 'task-1',
+      title: 'Review PR',
+      completed: false
     },
+    {
+      id: 'task-2',
+      title: 'Verify AST',
+      completed: true
+    }
+  ]);
 
-    createElement(
-      'h2',
-      null,
-      'DOM Mounting Test'
-    ),
+  // Hook 1: Current filter
+  const [filter, setFilter] = useState('ALL');
 
-    createElement(
-      'p',
-      null,
-      'This interface is generated from VNodes.'
-    ),
+  /**
+   * Add a new task.
+   */
+  function addTask() {
+    const newTask = {
+      id: crypto.randomUUID(),
+      title: `New Task ${tasks.length + 1}`,
+      completed: false
+    };
 
-    createElement(
+    setTasks(previousTasks => [
+      ...previousTasks,
+      newTask
+    ]);
+  }
+
+  /**
+   * Toggle task completion.
+   */
+  function toggleTask(id) {
+    setTasks(previousTasks =>
+      previousTasks.map(task =>
+        task.id === id
+          ? {
+              ...task,
+              completed: !task.completed
+            }
+          : task
+      )
+    );
+  }
+
+  /**
+   * Delete a task.
+   */
+  function deleteTask(id) {
+    setTasks(previousTasks =>
+      previousTasks.filter(task => task.id !== id)
+    );
+  }
+
+  /**
+   * Filter visible tasks.
+   */
+  const visibleTasks = tasks.filter(task => {
+    if (filter === 'ACTIVE') {
+      return !task.completed;
+    }
+
+    if (filter === 'COMPLETED') {
+      return task.completed;
+    }
+
+    return true;
+  });
+
+  /**
+   * Reusable filter button.
+   */
+  function filterButton(value, label) {
+    return h(
       'button',
       {
-        id: 'ping-button',
         type: 'button',
-        onClick: () => console.log('Ping')
+        className: 'filter-button',
+        'aria-pressed': filter === value
+          ? 'true'
+          : 'false',
+        onClick: () => setFilter(value)
       },
-      'Click'
-    )
-  ),
+      label
+    );
+  }
 
-  createElement(
-    'section',
+  /**
+   * Reusable task item.
+   */
+  function taskItem(task) {
+    return h(
+      'li',
+      {
+        key: task.id,
+        className: 'task-item'
+      },
+
+      h(
+        'span',
+        {
+          className: task.completed
+            ? 'task-title completed'
+            : 'task-title'
+        },
+        task.title
+      ),
+
+      h(
+        'button',
+        {
+          type: 'button',
+          className: 'action-button',
+          'aria-label':
+            `${task.completed ? 'Undo' : 'Complete'} ${task.title}`,
+          onClick: () => toggleTask(task.id)
+        },
+        task.completed ? 'Undo' : 'Complete'
+      ),
+
+      h(
+        'button',
+        {
+          type: 'button',
+          className: 'delete-button',
+          'aria-label': `Delete ${task.title}`,
+          onClick: () => deleteTask(task.id)
+        },
+        'Delete'
+      )
+    );
+  }
+
+  /**
+   * Return the application VNode tree.
+   */
+  return h(
+    'main',
     {
-      className: 'demo-section',
-      'aria-label': 'Engine information'
+      id: 'task-manager',
+      className: 'app-container'
     },
 
-    createElement(
-      'h2',
-      null,
-      'Engine Features'
+    h(
+      'header',
+      { className: 'app-header' },
+
+      h(
+        'h1',
+        null,
+        'Reactive Task Manager'
+      ),
+
+      h(
+        'p',
+        null,
+        'Lab 02 - Exercise 2'
+      ),
+
+      h(
+        'p',
+        {
+          id: 'task-count',
+          'aria-live': 'polite'
+        },
+        `Total Tasks: ${tasks.length}`
+      )
     ),
 
-    createElement(
-      'ul',
-      null,
+    h(
+      'section',
+      {
+        className: 'control-section',
+        'aria-label': 'Task controls'
+      },
 
-      createElement(
-        'li',
-        null,
-        'VNode factory'
+      h(
+        'button',
+        {
+          id: 'add-task',
+          type: 'button',
+          className: 'primary-button',
+          onClick: addTask
+        },
+        'Add Task'
       ),
 
-      createElement(
-        'li',
-        null,
-        'Text normalization'
-      ),
+      h(
+        'nav',
+        {
+          className: 'filter-nav',
+          'aria-label': 'Task filters'
+        },
 
-      createElement(
-        'li',
-        null,
-        'Recursive DOM mounting'
-      ),
-
-      createElement(
-        'li',
-        null,
-        'Safe text rendering'
+        filterButton('ALL', 'All'),
+        filterButton('ACTIVE', 'Active'),
+        filterButton('COMPLETED', 'Completed')
       )
+    ),
+
+    h(
+      'section',
+      {
+        className: 'list-section',
+        'aria-label': 'Task list'
+      },
+
+      h(
+        'h2',
+        null,
+        'Tasks'
+      ),
+
+      h(
+        'p',
+        {
+          id: 'visible-count'
+        },
+        `Showing ${visibleTasks.length} task(s)`
+      ),
+
+      visibleTasks.length === 0
+        ? h(
+            'p',
+            { className: 'empty-message' },
+            'No tasks found.'
+          )
+        : h(
+            'ul',
+            {
+              id: 'task-list',
+              className: 'task-list'
+            },
+            ...visibleTasks.map(taskItem)
+          )
     )
-  )
-);
+  );
+}
 
-// Mount VNode tree into the real DOM.
-root.replaceChildren(renderToDOM(vApp));
+/**
+ * Application render cycle.
+ */
+let renderCount = 0;
 
-// Basic runtime verification.
-console.assert(
-  root.querySelector('main') !== null,
-  'Main element missing'
-);
+function renderApp() {
+  resetCursor();
 
-console.assert(
-  root.querySelector('section') !== null,
-  'Section element missing'
-);
+  const vnode = TaskApp();
 
-console.assert(
-  root.querySelector('button') !== null,
-  'Button element missing'
-);
+  const dom = renderToDOM(
+    vnode,
+    { delegateEvents: true }
+  );
 
-console.assert(
-  root.querySelector('img') === null,
-  'Unexpected image element created'
-);
+  root.replaceChildren(dom);
 
-console.assert(
-  root.querySelector('script') === null,
-  'Unexpected script element created'
-);
+  renderCount++;
 
-console.log('Exercise 1 mounted successfully');
-runRendererTests();
+  console.log(
+    `Render completed: ${renderCount}`
+  );
+}
+
+/**
+ * Initialize application.
+ *
+ * Delegation is attached only once.
+ */
+setupEventDelegation(root);
+
+setRenderer(renderApp);
+
+renderApp();
+
+console.log('Exercise 2 initialized');
